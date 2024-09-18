@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id             Int        @id @default(autoincrement())
+  username       String     @unique
+  password       String
+  surveys        Survey[]   @relation("Creator")
+  editedSurveys  Survey[]   @relation("Editor")  
+}
+
+model Survey {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String
+  fields      Field[]
+  responses   Response[]
+  creator     User         @relation("Creator", fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  editor      User?        @relation("Editor", fields: [editorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creatorId   Int
+  editorId    Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Field {
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String   
+  required  Boolean
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  surveyId  Int
+}
+
+model Response {
+  id        Int      @id @default(autoincrement())
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  surveyId  Int
+  answers   String   
+  createdAt DateTime @default(now())
+}
